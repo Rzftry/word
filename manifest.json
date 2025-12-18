@@ -1,0 +1,9 @@
+{
+  "name": "Word Solver",
+  "short_name": "WordSolver",
+  "description": "Penyelesaian permainan kata seperti Scrabble dan Literati",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3498db"
+}
