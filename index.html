@@ -501,4 +501,121 @@
         });
     </script>
 </body>
+<!-- === SOLVER TAB === -->
+<div class="tab-content active" id="solver-content">
+    <section class="input-section">
+        <h2><i class="fas fa-keyboard"></i> Word Solver</h2>
+        
+        <div class="letter-grid" id="letterGrid"></div>
+        
+        <div class="solver-controls">
+            <button class="btn solver-btn" id="generateBtn">
+                <i class="fas fa-random"></i> Random Letters
+            </button>
+            <button class="btn solver-btn" id="clearBtn">
+                <i class="fas fa-trash"></i> Clear
+            </button>
+            <button class="btn solver-btn" id="saveSetBtn">
+                <i class="fas fa-save"></i> Save Set
+            </button>
+            <button class="btn solver-btn" id="findWordsBtn">
+                <i class="fas fa-search"></i> Find Words
+            </button>
+        </div>
+        
+        <!-- ADVANCED SEARCH OPTIONS -->
+        <div class="advanced-search-options">
+            <h3><i class="fas fa-sliders-h"></i> Advanced Search</h3>
+            
+            <div class="search-filters">
+                <!-- Pattern Search -->
+                <div class="filter-group">
+                    <label><i class="fas fa-shapes"></i> Pattern Search:</label>
+                    <input type="text" id="patternInput" placeholder="C?T (CAT, COT, CUT)" 
+                           title="Use ? for unknown letters, * for any letters">
+                </div>
+                
+                <!-- Position Filters -->
+                <div class="filter-group">
+                    <label><i class="fas fa-align-left"></i> Starts With:</label>
+                    <input type="text" id="startsWith" placeholder="e.g., A, AB, UN">
+                </div>
+                
+                <div class="filter-group">
+                    <label><i class="fas fa-align-center"></i> Contains:</label>
+                    <input type="text" id="containsWord" placeholder="e.g., ING, ATION">
+                </div>
+                
+                <div class="filter-group">
+                    <label><i class="fas fa-align-right"></i> Ends With:</label>
+                    <input type="text" id="endsWith" placeholder="e.g., S, ED, ING">
+                </div>
+                
+                <!-- Length Filter -->
+                <div class="filter-group">
+                    <label><i class="fas fa-ruler"></i> Word Length:</label>
+                    <select id="wordLength">
+                        <option value="all">All Lengths</option>
+                        <option value="3">3 letters</option>
+                        <option value="4">4 letters</option>
+                        <option value="5">5 letters</option>
+                        <option value="6">6 letters</option>
+                        <option value="7">7 letters</option>
+                        <option value="8">8 letters</option>
+                    </select>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="filter-actions">
+                    <button class="btn-filter" id="applyFilters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button class="btn-filter" id="clearFilters">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RESULTS SECTION -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h3><i class="fas fa-list-ul"></i> Found Words</h3>
+                <div class="results-info">
+                    <span id="foundCount">0</span> words found |
+                    <span id="totalScore">Total: 0 points</span>
+                </div>
+                <div class="results-actions">
+                    <button class="btn-action" id="copyAllBtn">
+                        <i class="fas fa-copy"></i> Copy All
+                    </button>
+                    <button class="btn-action" id="sortByScoreBtn">
+                        <i class="fas fa-star"></i> Sort by Score
+                    </button>
+                    <button class="btn-action" id="sortByLengthBtn">
+                        <i class="fas fa-sort-amount-down"></i> Sort by Length
+                    </button>
+                </div>
+            </div>
+            
+            <!-- WORDS DISPLAY -->
+            <div class="words-display" id="wordsDisplay">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4>Enter letters to find words</h4>
+                    <p>Type 8 letters or click "Random Letters" to start</p>
+                </div>
+            </div>
+            
+            <!-- PAGINATION (for many results) -->
+            <div class="results-pagination" id="pagination" style="display: none;">
+                <button class="page-btn" id="prevPage">◀ Previous</button>
+                <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                <button class="page-btn" id="nextPage">Next ▶</button>
+            </div>
+        </div>
+    </section>
+</div>
 </html>

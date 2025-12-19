@@ -859,3 +859,542 @@ class EnhancedSolver {
 
 // Integrate with existing app
 // Add this to your existing initialization
+// ============================================
+// ADVANCED WORD SEARCH & DISPLAY SYSTEM
+// ============================================
+
+class WordSearchSystem {
+    constructor() {
+        this.foundWords = [];
+        this.filteredWords = [];
+        this.currentPage = 1;
+        this.wordsPerPage = 50;
+        this.filters = {
+            startsWith: '',
+            contains: '',
+            endsWith: '',
+            pattern: '',
+            minLength: 3,
+            maxLength: 8,
+            sortBy: 'length' // 'length', 'score', 'alpha'
+        };
+        
+        this.initialize();
+    }
+    
+    initialize() {
+        console.log('Initializing Word Search System...');
+        
+        this.setupEventListeners();
+        this.autoSearchOnInput();
+    }
+    
+    setupEventListeners() {
+        // Find Words Button
+        const findBtn = document.getElementById('findWordsBtn');
+        if (findBtn) {
+            findBtn.addEventListener('click', () => this.findWords());
+        }
+        
+        // Apply Filters Button
+        const applyBtn = document.getElementById('applyFilters');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => this.applyFilters());
+        }
+        
+        // Clear Filters Button
+        const clearBtn = document.getElementById('clearFilters');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearFilters());
+        }
+        
+        // Copy All Button
+        const copyBtn = document.getElementById('copyAllBtn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => this.copyAllWords());
+        }
+        
+        // Sort Buttons
+        const sortScoreBtn = document.getElementById('sortByScoreBtn');
+        if (sortScoreBtn) {
+            sortScoreBtn.addEventListener('click', () => this.sortBy('score'));
+        }
+        
+        const sortLengthBtn = document.getElementById('sortByLengthBtn');
+        if (sortLengthBtn) {
+            sortLengthBtn.addEventListener('click', () => this.sortBy('length'));
+        }
+        
+        // Pagination
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        if (prevBtn) prevBtn.addEventListener('click', () => this.prevPage());
+        if (nextBtn) nextBtn.addEventListener('click', () => this.nextPage());
+        
+        // Filter Inputs (live update)
+        const filterInputs = ['patternInput', 'startsWith', 'containsWord', 'endsWith', 'wordLength'];
+        filterInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', debounce(() => {
+                    if (input.value.trim() !== '') {
+                        this.applyFilters();
+                    }
+                }, 500));
+            }
+        });
+    }
+    
+    autoSearchOnInput() {
+        const letterTiles = document.querySelectorAll('.letter-tile');
+        letterTiles.forEach(tile => {
+            tile.addEventListener('input', debounce(() => {
+                const letters = this.getCurrentLetters();
+                if (letters.length >= 3) {
+                    this.findWords();
+                }
+            }, 300));
+        });
+    }
+    
+    getCurrentLetters() {
+        const letters = [];
+        const tiles = document.querySelectorAll('.letter-tile');
+        
+        tiles.forEach(tile => {
+            if (tile.value && tile.value.trim() !== '') {
+                letters.push(tile.value.toLowerCase());
+            }
+        });
+        
+        return letters;
+    }
+    
+    async findWords() {
+        const letters = this.getCurrentLetters();
+        
+        if (letters.length < 3) {
+            this.showEmptyState('Enter at least 3 letters');
+            return;
+        }
+        
+        console.log('Searching words for letters:', letters.join(''));
+        
+        // Show loading
+        this.showLoading(true);
+        
+        try {
+            // Get words from backup dictionary
+            const allWords = [
+                ...(window.backupDictionary?.english || []),
+                ...(window.backupDictionary?.malay || [])
+            ];
+            
+            // Find possible words
+            this.foundWords = allWords.filter(word => {
+                // Basic filtering
+                if (word.length < 3 || word.length > 8) return false;
+                
+                // Check if word can be formed from letters
+                return this.canFormWord(word, letters);
+            });
+            
+            console.log(`Found ${this.foundWords.length} possible words`);
+            
+            // Apply initial filters
+            this.applyFilters();
+            
+            // Show results
+            this.displayResults();
+            
+        } catch (error) {
+            console.error('Error finding words:', error);
+            this.showEmptyState('Error searching for words');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+    
+    canFormWord(word, letters) {
+        const lettersCopy = [...letters];
+        
+        for (const char of word.toLowerCase()) {
+            const index = lettersCopy.indexOf(char);
+            if (index === -1) return false;
+            lettersCopy.splice(index, 1);
+        }
+        
+        return true;
+    }
+    
+    applyFilters() {
+        // Get filter values
+        this.filters = {
+            startsWith: document.getElementById('startsWith')?.value.toLowerCase() || '',
+            contains: document.getElementById('containsWord')?.value.toLowerCase() || '',
+            endsWith: document.getElementById('endsWith')?.value.toLowerCase() || '',
+            pattern: document.getElementById('patternInput')?.value.toLowerCase() || '',
+            minLength: 3,
+            maxLength: 8,
+            sortBy: 'length'
+        };
+        
+        // Get length filter
+        const lengthFilter = document.getElementById('wordLength')?.value;
+        if (lengthFilter && lengthFilter !== 'all') {
+            this.filters.minLength = parseInt(lengthFilter);
+            this.filters.maxLength = parseInt(lengthFilter);
+        }
+        
+        // Apply filters
+        this.filteredWords = this.foundWords.filter(word => {
+            const wordLower = word.toLowerCase();
+            
+            // Starts with filter
+            if (this.filters.startsWith && !wordLower.startsWith(this.filters.startsWith)) {
+                return false;
+            }
+            
+            // Contains filter
+            if (this.filters.contains && !wordLower.includes(this.filters.contains)) {
+                return false;
+            }
+            
+            // Ends with filter
+            if (this.filters.endsWith && !wordLower.endsWith(this.filters.endsWith)) {
+                return false;
+            }
+            
+            // Pattern filter (wildcard)
+            if (this.filters.pattern) {
+                const pattern = this.filters.pattern.replace(/\?/g, '.').replace(/\*/g, '.*');
+                const regex = new RegExp(`^${pattern}$`);
+                if (!regex.test(wordLower)) {
+                    return false;
+                }
+            }
+            
+            // Length filter
+            if (word.length < this.filters.minLength || word.length > this.filters.maxLength) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Sort
+        this.sortBy(this.filters.sortBy);
+        
+        // Reset pagination
+        this.currentPage = 1;
+        
+        // Display results
+        this.displayResults();
+    }
+    
+    sortBy(sortType) {
+        this.filters.sortBy = sortType;
+        
+        switch(sortType) {
+            case 'score':
+                this.filteredWords.sort((a, b) => 
+                    this.calculateWordScore(b) - this.calculateWordScore(a)
+                );
+                break;
+                
+            case 'alpha':
+                this.filteredWords.sort((a, b) => a.localeCompare(b));
+                break;
+                
+            case 'length':
+            default:
+                this.filteredWords.sort((a, b) => {
+                    // First by length (longest first), then alphabetically
+                    if (b.length !== a.length) {
+                        return b.length - a.length;
+                    }
+                    return a.localeCompare(b);
+                });
+        }
+        
+        this.displayResults();
+    }
+    
+    calculateWordScore(word) {
+        const scores = {
+            'a':1,'b':3,'c':3,'d':2,'e':1,'f':4,'g':2,'h':4,'i':1,'j':8,'k':5,'l':1,
+            'm':3,'n':1,'o':1,'p':3,'q':10,'r':1,'s':1,'t':1,'u':1,'v':4,'w':4,'x':8,
+            'y':4,'z':10
+        };
+        
+        return word.toLowerCase().split('').reduce((total, letter) => {
+            return total + (scores[letter] || 0);
+        }, 0);
+    }
+    
+    clearFilters() {
+        // Clear filter inputs
+        document.getElementById('startsWith').value = '';
+        document.getElementById('containsWord').value = '';
+        document.getElementById('endsWith').value = '';
+        document.getElementById('patternInput').value = '';
+        document.getElementById('wordLength').value = 'all';
+        
+        // Reset filters
+        this.filters = {
+            startsWith: '',
+            contains: '',
+            endsWith: '',
+            pattern: '',
+            minLength: 3,
+            maxLength: 8,
+            sortBy: 'length'
+        };
+        
+        // Show all found words
+        this.filteredWords = [...this.foundWords];
+        this.sortBy('length');
+        this.displayResults();
+    }
+    
+    displayResults() {
+        const wordsDisplay = document.getElementById('wordsDisplay');
+        const foundCount = document.getElementById('foundCount');
+        const totalScore = document.getElementById('totalScore');
+        const pagination = document.getElementById('pagination');
+        
+        if (!wordsDisplay) return;
+        
+        // Update counts
+        if (foundCount) {
+            foundCount.textContent = this.filteredWords.length;
+        }
+        
+        if (totalScore) {
+            const total = this.filteredWords.reduce((sum, word) => 
+                sum + this.calculateWordScore(word), 0
+            );
+            totalScore.textContent = `Total: ${total} points`;
+        }
+        
+        // Check if no words
+        if (this.filteredWords.length === 0) {
+            wordsDisplay.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4>No words found</h4>
+                    <p>Try different letters or adjust filters</p>
+                </div>
+            `;
+            
+            if (pagination) pagination.style.display = 'none';
+            return;
+        }
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(this.filteredWords.length / this.wordsPerPage);
+        const startIndex = (this.currentPage - 1) * this.wordsPerPage;
+        const endIndex = startIndex + this.wordsPerPage;
+        const pageWords = this.filteredWords.slice(startIndex, endIndex);
+        
+        // Build words grid
+        let wordsHTML = '<div class="words-grid">';
+        
+        pageWords.forEach(word => {
+            const score = this.calculateWordScore(word);
+            const lengthClass = `word-length-${word.length}`;
+            
+            wordsHTML += `
+                <div class="word-item" onclick="wordSearch.copyWord('${word}')">
+                    <span class="word-text ${lengthClass}">${word}</span>
+                    <div class="word-details">
+                        <span class="word-score">${score}</span>
+                        <span class="word-length">${word.length}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        wordsHTML += '</div>';
+        wordsDisplay.innerHTML = wordsHTML;
+        
+        // Show/hide pagination
+        if (pagination) {
+            if (totalPages > 1) {
+                pagination.style.display = 'flex';
+                
+                // Update page info
+                document.getElementById('currentPage').textContent = this.currentPage;
+                document.getElementById('totalPages').textContent = totalPages;
+                
+                // Enable/disable buttons
+                document.getElementById('prevPage').disabled = this.currentPage === 1;
+                document.getElementById('nextPage').disabled = this.currentPage === totalPages;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+    }
+    
+    prevPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.displayResults();
+        }
+    }
+    
+    nextPage() {
+        const totalPages = Math.ceil(this.filteredWords.length / this.wordsPerPage);
+        if (this.currentPage < totalPages) {
+            this.currentPage++;
+            this.displayResults();
+        }
+    }
+    
+    copyWord(word) {
+        navigator.clipboard.writeText(word).then(() => {
+            this.showNotification(`Copied: ${word}`);
+        });
+    }
+    
+    copyAllWords() {
+        if (this.filteredWords.length === 0) {
+            this.showNotification('No words to copy');
+            return;
+        }
+        
+        const text = this.filteredWords.join(', ');
+        navigator.clipboard.writeText(text).then(() => {
+            this.showNotification(`Copied ${this.filteredWords.length} words`);
+        });
+    }
+    
+    showEmptyState(message) {
+        const wordsDisplay = document.getElementById('wordsDisplay');
+        if (wordsDisplay) {
+            wordsDisplay.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-keyboard"></i>
+                    </div>
+                    <h4>${message}</h4>
+                    <p>Type letters or click "Random Letters"</p>
+                </div>
+            `;
+        }
+    }
+    
+    showLoading(show) {
+        const wordsDisplay = document.getElementById('wordsDisplay');
+        if (!wordsDisplay) return;
+        
+        if (show) {
+            wordsDisplay.innerHTML = `
+                <div class="empty-state">
+                    <div class="loading-spinner-small"></div>
+                    <h4>Searching for words...</h4>
+                </div>
+            `;
+        }
+    }
+    
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
+    }
+}
+
+// Helper function for debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Add CSS for loading spinner
+function addSearchStyles() {
+    if (!document.getElementById('search-styles')) {
+        const style = document.createElement('style');
+        style.id = 'search-styles';
+        style.textContent = `
+            .loading-spinner-small {
+                width: 30px;
+                height: 30px;
+                border: 3px solid rgba(255,255,255,0.3);
+                border-top: 3px solid var(--primary);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 15px;
+            }
+            
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            .word-length-3 { color: #4cc9f0; }
+            .word-length-4 { color: #4361ee; }
+            .word-length-5 { color: #7209b7; }
+            .word-length-6 { color: #f72585; }
+            .word-length-7 { color: #f8961e; }
+            .word-length-8 { color: #f94144; font-weight: 800; }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Initialize when DOM is loaded
+let wordSearch;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Setting up Word Search System...');
+    
+    addSearchStyles();
+    
+    // Initialize after a short delay
+    setTimeout(() => {
+        wordSearch = new WordSearchSystem();
+        
+        // Make available globally
+        window.wordSearch = wordSearch;
+        
+        // Auto-search if letters already entered
+        const letters = wordSearch.getCurrentLetters();
+        if (letters.length >= 3) {
+            wordSearch.findWords();
+        }
+        
+        console.log('Word Search System ready!');
+    }, 500);
+});
