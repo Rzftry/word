@@ -3,113 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Solver - Penyelesaian Permainan Kata</title>
-    
-    <!-- Link ke fail CSS -->
+    <title>🔤 Word Master - Live Word Game Solver</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Manifest untuk PWA -->
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔤</text></svg>">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔤</text></svg>">
+    <!-- Font Awesome untuk icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Inline styles untuk ikon button */
-        .btn-icon { font-size: 1.2em; }
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
-            <h1 class="app-title">🔤 Word Solver</h1>
-            <p class="app-subtitle">Penyelesaian untuk Scrabble, Words With Friends, & Literati</p>
-            
-            <div class="language-selector" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-                <button class="lang-btn btn-primary active" data-lang="malay">
-                    🇲🇾 Bahasa Melayu
-                </button>
-                <button class="lang-btn btn-secondary" data-lang="english">
-                    🇺🇸 English
-                </button>
-                <button class="lang-btn btn-secondary" data-lang="both">
-                    🌍 Kedua-dua
-                </button>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1><i class="fas fa-spell-check"></i> Word Master</h1>
+                    <p class="subtitle">Live Solver untuk Scrabble, Words & Literati</p>
+                </div>
+                
+                <div class="language-switch">
+                    <div class="language-buttons">
+                        <button class="lang-btn active" data-lang="en">
+                            <i class="fas fa-globe-americas"></i> English
+                        </button>
+                        <button class="lang-btn" data-lang="my">
+                            <i class="fas fa-flag"></i> Melayu
+                        </button>
+                        <button class="lang-btn" data-lang="both">
+                            <i class="fas fa-language"></i> Both
+                        </button>
+                    </div>
+                    
+                    <div class="api-status">
+                        <span id="apiStatus" class="status-online">
+                            <i class="fas fa-wifi"></i> API Online
+                        </span>
+                    </div>
+                </div>
             </div>
         </header>
-        
+
         <!-- Main Content -->
-        <main>
+        <main class="main-content">
             <!-- Letter Input Section -->
-            <section style="padding: 25px;">
-                <h2 style="color: #2c3e50; margin-bottom: 20px; font-size: 1.5rem;">
-                    Masukkan 8 Huruf Anda:
-                </h2>
+            <section class="input-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-keyboard"></i> Enter Your Letters</h2>
+                    <p class="section-subtitle">Masukkan 8 huruf dari permainan anda</p>
+                </div>
                 
                 <div class="letter-grid" id="letterGrid">
                     <!-- Letter tiles akan diisi oleh JavaScript -->
                 </div>
                 
-                <!-- Controls -->
-                <div class="controls">
-                    <button class="btn btn-primary" id="generateBtn">
-                        <span class="btn-icon">🎲</span> Huruf Rawak
+                <div class="input-controls">
+                    <button class="control-btn btn-generate" id="generateBtn">
+                        <i class="fas fa-random"></i> Random Letters
                     </button>
-                    <button class="btn btn-secondary" id="clearBtn">
-                        <span class="btn-icon">🗑️</span> Kosongkan Semua
+                    <button class="control-btn btn-clear" id="clearBtn">
+                        <i class="fas fa-trash-alt"></i> Clear All
                     </button>
+                    <button class="control-btn btn-advanced" id="toggleAdvanced">
+                        <i class="fas fa-sliders-h"></i> Advanced
+                    </button>
+                </div>
+                
+                <!-- Advanced Options -->
+                <div class="advanced-options" id="advancedOptions">
+                    <div class="options-grid">
+                        <div class="option">
+                            <input type="checkbox" id="realTimeSearch" checked>
+                            <label for="realTimeSearch">Live Search (Auto-update)</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="showScores" checked>
+                            <label for="showScores">Show Word Scores</label>
+                        </div>
+                        <div class="option">
+                            <input type="range" id="minLength" min="2" max="8" value="3">
+                            <label for="minLength">Min Length: <span id="minLengthValue">3</span></label>
+                        </div>
+                        <div class="option">
+                            <select id="apiSelector">
+                                <option value="datamuse">Datamuse API (English)</option>
+                                <option value="kateglo">Kateglo API (Melayu)</option>
+                                <option value="combined">All APIs (Recommended)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Search Box -->
-                <div style="margin-top: 25px;">
-                    <input type="text" id="searchInput" 
-                           placeholder="Cari kata tertentu (contoh: makan, main, dll.)"
-                           style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem;">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" 
+                               placeholder="Search words... (e.g., makan, play, etc.)">
+                        <div class="search-stats">
+                            <span id="letterCount">0/8 letters</span>
+                        </div>
+                    </div>
                 </div>
             </section>
-            
+
             <!-- Results Section -->
-            <section class="results-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="color: #2c3e50; font-size: 1.5rem;">
-                        Kata Yang Ditemui: 
-                        <span id="resultsCount" style="color: #3498db;">0</span>
-                        <span id="dictionaryInfo" style="font-size: 0.9rem; color: #7f8c8d;">
-                            | Kamus Bahasa Melayu
-                        </span>
-                    </h2>
+            <section class="results-section">
+                <div class="results-header">
+                    <div class="results-title">
+                        <h2><i class="fas fa-list-ul"></i> Found Words</h2>
+                        <div class="results-count">
+                            <span id="resultsCount">0</span> words found
+                            <span class="api-source" id="apiSource">(Loading...)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sort-controls">
+                        <button class="sort-btn active" data-sort="length-desc">
+                            <i class="fas fa-sort-amount-down"></i> Longest
+                        </button>
+                        <button class="sort-btn" data-sort="score-desc">
+                            <i class="fas fa-star"></i> High Score
+                        </button>
+                        <button class="sort-btn" data-sort="alpha">
+                            <i class="fas fa-sort-alpha-down"></i> A-Z
+                        </button>
+                        <button class="sort-btn" data-sort="common">
+                            <i class="fas fa-fire"></i> Common
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="words-list" id="wordsList">
-                    <!-- Words akan diisi oleh JavaScript -->
-                    <div style="text-align: center; padding: 40px; color: #95a5a6;">
-                        <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
-                        <h3>Masukkan huruf untuk mula</h3>
-                        <p>Kata-kata akan muncul di sini secara automatik</p>
+                <!-- Results Container -->
+                <div class="results-container">
+                    <div class="words-list" id="wordsList">
+                        <!-- Words will be loaded here -->
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-spell-check"></i>
+                            </div>
+                            <h3>Enter letters to begin!</h3>
+                            <p>Type 8 letters or click "Random Letters" to start finding words</p>
+                            <div class="empty-tips">
+                                <div class="tip">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span>Include vowels for better results</span>
+                                </div>
+                                <div class="tip">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Live search updates as you type</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Footer -->
+                    <div class="results-footer">
+                        <div class="search-time">
+                            <i class="fas fa-clock"></i>
+                            <span>Search time: <span id="searchTime">0.0s</span></span>
+                        </div>
+                        <div class="word-stats">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Avg. score: <span id="avgScore">0</span></span>
+                        </div>
+                        <button class="btn-copy" id="copyAllBtn">
+                            <i class="fas fa-copy"></i> Copy All
+                        </button>
                     </div>
                 </div>
             </section>
         </main>
-        
+
         <!-- Footer -->
-        <footer style="padding: 20px; text-align: center; color: #7f8c8d; border-top: 1px solid #eee;">
-            <p>Word Solver © 2024 | Dibangunkan untuk peminat permainan kata</p>
-            <p style="font-size: 0.9rem; margin-top: 5px;">
-                Berfungsi secara offline | Boleh digunakan untuk Scrabble, Literati, dll.
-            </p>
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <h4><i class="fas fa-cube"></i> Word Master</h4>
+                    <p>Live word game solver using multiple free APIs</p>
+                </div>
+                
+                <div class="footer-links">
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-question-circle"></i> Help
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-download"></i> Install App
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2024 Word Master | Live API Search | Works Offline | Free to Use</p>
+                <p class="api-credits">
+                    APIs: Datamuse • Kateglo • Free Dictionary • WordNik
+                </p>
+            </div>
         </footer>
     </div>
-    
-    <!-- Loading Screen -->
-    <div class="loading" id="loadingScreen">
-        <div class="spinner"></div>
-        <div style="margin-top: 20px; font-size: 1.2rem; color: #2c3e50;">
-            Mencari kata-kata...
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3 id="loadingText">Searching for words...</h3>
+            <p class="loading-subtext" id="loadingSubtext">Checking multiple APIs</p>
+            <div class="loading-progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
         </div>
     </div>
-    
-    <!-- Link ke fail JavaScript -->
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-content">
+            <i class="fas fa-check-circle notification-icon"></i>
+            <span id="notificationText">Words found successfully!</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="words-cache.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
 </body>
 </html>

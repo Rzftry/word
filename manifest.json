@@ -1,9 +1,21 @@
 {
-  "name": "Word Solver",
-  "short_name": "WordSolver",
-  "description": "Penyelesaian permainan kata seperti Scrabble dan Literati",
+  "name": "Word Master",
+  "short_name": "WordMaster",
+  "description": "Live word game solver with API search for Scrabble, Words, and Literati",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3498db"
+  "background_color": "#0f172a",
+  "theme_color": "#4361ee",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%234361ee%22>🔤</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["games", "education", "productivity"],
+  "lang": "ms",
+  "dir": "ltr",
+  "prefer_related_applications": false
 }

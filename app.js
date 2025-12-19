@@ -1,91 +1,188 @@
-// app.js - Main JavaScript untuk Word Solver
+// ====================
+// WORD MASTER - APP.JS
+// Live API Word Solver
+// ====================
 
-// Kamus kata-kata (Malay & English)
-const dictionaries = {
-    malay: [
-        // Kata 3 huruf
-        'ada', 'air', 'api', 'aku', 'ibu', 'kita', 'kamu', 'mata', 'tangan', 'jalan',
-        'rumah', 'buku', 'meja', 'kursi', 'lampu', 'pintu', 'jendela', 'dapur', 'kamar',
-        'taman', 'besar', 'kecil', 'tinggi', 'pendek', 'panjang', 'lebar', 'dalam',
-        
-        // Kata 4 huruf
-        'makan', 'minum', 'tidur', 'baca', 'tulis', 'dengar', 'lihat', 'bicara',
-        'jalan', 'lari', 'main', 'nyanyi', 'tari', 'renang', 'lempar', 'tangkap',
-        'bunga', 'pohon', 'daun', 'akar', 'batang', 'buah', 'sayur', 'nasi',
-        
-        // Kata 5 huruf
-        'makanan', 'minuman', 'pakaian', 'sepatu', 'kaos', 'celana', 'baju',
-        'jaket', 'topi', 'sekolah', 'kampus', 'kelas', 'guru', 'murid', 'pelajar',
-        
-        // Kata 6+ huruf
-        'bermain', 'belajar', 'bekerja', 'kehidupan', 'masyarakat', 'pemerintah',
-        'perusahaan', 'internet', 'website', 'teknologi', 'pendidikan'
-    ],
-    
-    english: [
-        // 3-letter words
-        'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any', 'can', 'had', 'her',
-        'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man', 'new',
-        'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'its', 'let', 'put', 'say',
-        'she', 'too', 'use',
-        
-        // 4-letter words
-        'that', 'with', 'have', 'this', 'will', 'your', 'from', 'they', 'know', 'want',
-        'been', 'good', 'much', 'some', 'time', 'very', 'when', 'come', 'here', 'make',
-        'like', 'long', 'many', 'more', 'only', 'over', 'such', 'take', 'than', 'them',
-        'well', 'were', 'what',
-        
-        // 5+ letter words
-        'about', 'after', 'again', 'below', 'could', 'every', 'first', 'found', 'great',
-        'house', 'large', 'learn', 'never', 'other', 'place', 'plant', 'point', 'right',
-        'small', 'sound', 'spell', 'still', 'study', 'their', 'there', 'these', 'thing',
-        'think', 'three', 'water', 'where', 'which', 'world', 'would', 'write'
-    ]
+// App State
+let appState = {
+    currentLanguage: 'en',
+    currentLetters: new Array(8).fill(''),
+    foundWords: [],
+    searchInProgress: false,
+    lastSearchTime: 0,
+    apiStats: {
+        datamuse: { used: 0, available: 100000 },
+        kateglo: { used: 0, available: 1000 },
+        backup: { used: 0 }
+    }
 };
 
-// Application state
-let currentLanguage = 'malay';
-let currentLetters = Array(8).fill('');
-let foundWords = [];
+// API Configuration
+const APIS = {
+    datamuse: {
+        name: 'Datamuse',
+        url: (letters) => `https://api.datamuse.com/words?sp=${letters.join('')}&max=100`,
+        parser: (data) => data.map(item => item.word.toLowerCase()),
+        languages: ['en']
+    },
+    
+    kateglo: {
+        name: 'Kateglo',
+        url: (letters) => `https://kateglo.com/api.php?format=json&phrase=${letters.join('')}`,
+        parser: (data) => data.results ? data.results.map(item => item.phrase.toLowerCase()) : [],
+        languages: ['my']
+    },
+    
+    freeDictionary: {
+        name: 'Free Dictionary',
+        url: (word) => `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`,
+        parser: (data) => data[0]?.word ? [data[0].word.toLowerCase()] : [],
+        languages: ['en']
+    }
+};
 
-// Initialize the app when page loads
+// Initialize App
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Word Solver app initializing...');
-    setupLetterInputs();
+    console.log('Word Master Initializing...');
+    
+    initializeUI();
     setupEventListeners();
+    loadBackupDictionary();
     generateRandomLetters();
     
-    // Show app loaded message
+    // Show welcome
     setTimeout(() => {
-        showNotification('Word Solver sedia digunakan!');
-    }, 500);
+        showNotification('Word Master Ready! Live API search active.');
+        updateAPIStatus('online');
+    }, 1000);
 });
 
-// Setup the 8 letter input boxes
-function setupLetterInputs() {
-    const letterGrid = document.getElementById('letterGrid');
+// ====================
+// UI INITIALIZATION
+// ====================
+
+function initializeUI() {
+    createLetterTiles();
+    updateLetterCount();
+    updateUI();
+}
+
+function createLetterTiles() {
+    const grid = document.getElementById('letterGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
     
     for (let i = 0; i < 8; i++) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'letter-tile';
-        input.maxLength = 1;
-        input.placeholder = '?';
-        input.dataset.index = i;
+        const tile = document.createElement('input');
+        tile.type = 'text';
+        tile.className = 'letter-tile';
+        tile.maxLength = 1;
+        tile.placeholder = '?';
+        tile.dataset.index = i;
+        tile.autocomplete = 'off';
         
-        input.addEventListener('input', function(e) {
+        // Input event with debounce
+        tile.addEventListener('input', debounce((e) => {
             handleLetterInput(e, i);
-        });
+        }, 300));
         
-        input.addEventListener('keydown', function(e) {
+        // Key events
+        tile.addEventListener('keydown', (e) => {
             handleLetterKeydown(e, i);
         });
         
-        letterGrid.appendChild(input);
+        // Focus styling
+        tile.addEventListener('focus', () => {
+            tile.style.borderColor = 'var(--accent)';
+        });
+        
+        tile.addEventListener('blur', () => {
+            tile.style.borderColor = 'var(--primary)';
+        });
+        
+        grid.appendChild(tile);
     }
 }
 
-// Handle letter input
+// ====================
+// EVENT HANDLERS
+// ====================
+
+function setupEventListeners() {
+    // Language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            appState.currentLanguage = this.dataset.lang;
+            updateUI();
+            performSearch();
+        });
+    });
+    
+    // Generate random letters
+    document.getElementById('generateBtn').addEventListener('click', generateRandomLetters);
+    
+    // Clear all
+    document.getElementById('clearBtn').addEventListener('click', clearAllLetters);
+    
+    // Advanced toggle
+    document.getElementById('toggleAdvanced').addEventListener('click', function() {
+        document.getElementById('advancedOptions').classList.toggle('show');
+    });
+    
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            filterWords(searchInput.value.toLowerCase());
+        }, 200));
+    }
+    
+    // Sort buttons
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            sortWords(this.dataset.sort);
+        });
+    });
+    
+    // Copy all button
+    document.getElementById('copyAllBtn').addEventListener('click', copyAllWords);
+    
+    // Real-time search toggle
+    const realTimeToggle = document.getElementById('realTimeSearch');
+    if (realTimeToggle) {
+        realTimeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                performSearch();
+            }
+        });
+    }
+    
+    // Min length slider
+    const minLengthSlider = document.getElementById('minLength');
+    const minLengthValue = document.getElementById('minLengthValue');
+    if (minLengthSlider && minLengthValue) {
+        minLengthSlider.addEventListener('input', function() {
+            minLengthValue.textContent = this.value;
+            performSearch();
+        });
+    }
+    
+    // API selector
+    const apiSelector = document.getElementById('apiSelector');
+    if (apiSelector) {
+        apiSelector.addEventListener('change', performSearch);
+    }
+}
+
+// ====================
+// LETTER HANDLING
+// ====================
+
 function handleLetterInput(event, index) {
     const input = event.target;
     let value = input.value.toUpperCase().replace(/[^A-Z]/g, '');
@@ -95,144 +192,315 @@ function handleLetterInput(event, index) {
     }
     
     input.value = value;
-    currentLetters[index] = value.toLowerCase();
+    appState.currentLetters[index] = value.toLowerCase();
     
-    // Auto-focus next input
+    // Auto-focus next
     if (value && index < 7) {
         document.querySelector(`.letter-tile[data-index="${index + 1}"]`).focus();
     }
     
-    // Auto-search when all letters are filled
-    const filledLetters = currentLetters.filter(l => l !== '');
-    if (filledLetters.length >= 3) {
-        findPossibleWords();
+    updateLetterCount();
+    
+    // Auto-search if enabled
+    const realTimeEnabled = document.getElementById('realTimeSearch')?.checked ?? true;
+    if (realTimeEnabled && appState.currentLetters.filter(l => l).length >= 3) {
+        performSearch();
     }
 }
 
-// Handle backspace key
 function handleLetterKeydown(event, index) {
     if (event.key === 'Backspace' && !event.target.value && index > 0) {
         event.preventDefault();
         const prevInput = document.querySelector(`.letter-tile[data-index="${index - 1}"]`);
         prevInput.focus();
         prevInput.value = '';
-        prevInput.classList.remove('filled');
-        currentLetters[index - 1] = '';
+        appState.currentLetters[index - 1] = '';
+        updateLetterCount();
+        
+        if (document.getElementById('realTimeSearch')?.checked) {
+            performSearch();
+        }
     }
 }
 
-// Generate random letters
 function generateRandomLetters() {
     const vowels = 'AEIOU';
     const consonants = 'BCDFGHJKLMNPQRSTVWXYZ';
-    const letters = [];
+    let letters = [];
     
-    // Add 3-4 vowels
-    const vowelCount = Math.floor(Math.random() * 2) + 3;
+    // Ensure good vowel-consonant balance
+    const vowelCount = Math.floor(Math.random() * 2) + 3; // 3-4 vowels
+    const consonantCount = 8 - vowelCount;
+    
     for (let i = 0; i < vowelCount; i++) {
         letters.push(vowels.charAt(Math.floor(Math.random() * vowels.length)));
     }
     
-    // Add consonants to make 8 letters
-    while (letters.length < 8) {
+    for (let i = 0; i < consonantCount; i++) {
         letters.push(consonants.charAt(Math.floor(Math.random() * consonants.length)));
     }
     
-    // Shuffle the letters
+    // Shuffle
     for (let i = letters.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [letters[i], letters[j]] = [letters[j], letters[i]];
     }
     
-    // Update the UI
+    // Update UI
     const inputs = document.querySelectorAll('.letter-tile');
     inputs.forEach((input, i) => {
         input.value = letters[i];
-        currentLetters[i] = letters[i].toLowerCase();
+        appState.currentLetters[i] = letters[i].toLowerCase();
     });
     
-    // Find words with the new letters
-    findPossibleWords();
+    updateLetterCount();
+    performSearch();
 }
 
-// Find all possible words from current letters
-function findPossibleWords() {
-    const letters = currentLetters.filter(l => l !== '');
+function clearAllLetters() {
+    appState.currentLetters = new Array(8).fill('');
+    document.querySelectorAll('.letter-tile').forEach(input => {
+        input.value = '';
+    });
+    appState.foundWords = [];
+    updateLetterCount();
+    updateUI();
+}
+
+function updateLetterCount() {
+    const count = appState.currentLetters.filter(l => l).length;
+    const countElement = document.getElementById('letterCount');
+    if (countElement) {
+        countElement.textContent = `${count}/8 letters`;
+        countElement.style.color = count >= 3 ? 'var(--success)' : 'var(--warning)';
+    }
+}
+
+// ====================
+// SEARCH FUNCTIONS
+// ====================
+
+async function performSearch() {
+    if (appState.searchInProgress) return;
+    
+    const letters = appState.currentLetters.filter(l => l);
     if (letters.length < 3) {
+        appState.foundWords = [];
+        updateUI();
         return;
     }
     
     // Show loading
-    showLoading(true);
+    showLoading(true, 'Searching APIs...');
+    appState.searchInProgress = true;
+    const searchStartTime = Date.now();
     
-    // Get the appropriate dictionary
-    const dictionary = dictionaries[currentLanguage];
-    
-    // Filter words that can be made from the letters
-    const possibleWords = dictionary.filter(word => {
-        // Check word length
-        if (word.length < 3 || word.length > 8) return false;
+    try {
+        let results = [];
+        const selectedApi = document.getElementById('apiSelector')?.value || 'combined';
         
-        // Check if word can be formed from available letters
-        const availableLetters = [...letters];
-        
-        for (const char of word) {
-            const index = availableLetters.indexOf(char);
-            if (index === -1) return false;
-            availableLetters.splice(index, 1);
+        // Search based on language and API selection
+        if (appState.currentLanguage === 'en' || appState.currentLanguage === 'both') {
+            results = await searchDatamuse(letters);
+            appState.apiStats.datamuse.used++;
         }
         
-        return true;
-    });
-    
-    // Sort by length (longest first)
-    possibleWords.sort((a, b) => b.length - a.length);
-    
-    // Update state and UI
-    foundWords = possibleWords;
-    updateWordList();
-    
-    // Hide loading
-    setTimeout(() => {
+        if (appState.currentLanguage === 'my' || appState.currentLanguage === 'both') {
+            const malayResults = await searchBackupMalay(letters);
+            results = [...results, ...malayResults];
+            appState.apiStats.backup.used++;
+        }
+        
+        // Remove duplicates and filter
+        const minLength = parseInt(document.getElementById('minLength')?.value || 3);
+        appState.foundWords = [...new Set(results)]
+            .filter(word => word.length >= minLength && word.length <= 8)
+            .filter(word => canFormWord(word, letters));
+        
+        // Calculate search time
+        appState.lastSearchTime = (Date.now() - searchStartTime) / 1000;
+        
+    } catch (error) {
+        console.error('Search failed:', error);
+        // Fallback to backup
+        appState.foundWords = searchBackupDictionary(letters);
+        showNotification('Using offline dictionary');
+    } finally {
+        appState.searchInProgress = false;
         showLoading(false);
-    }, 300);
+        updateUI();
+        
+        // Show notification if words found
+        if (appState.foundWords.length > 0) {
+            showNotification(`Found ${appState.foundWords.length} words in ${appState.lastSearchTime.toFixed(2)}s`);
+        }
+    }
 }
 
-// Update the word list display
+async function searchDatamuse(letters) {
+    try {
+        const response = await fetch(APIS.datamuse.url(letters), {
+            signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        
+        const data = await response.json();
+        return APIS.datamuse.parser(data);
+    } catch (error) {
+        console.warn('Datamuse failed, using backup');
+        return searchBackupEnglish(letters);
+    }
+}
+
+async function searchKateglo(letters) {
+    try {
+        const response = await fetch(APIS.kateglo.url(letters), {
+            signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!response.ok) throw new Error('API failed');
+        
+        const data = await response.json();
+        return APIS.kateglo.parser(data);
+    } catch (error) {
+        console.warn('Kateglo failed, using backup');
+        return searchBackupMalay(letters);
+    }
+}
+
+function searchBackupEnglish(letters) {
+    if (!window.backupDictionary || !window.backupDictionary.english) {
+        return [];
+    }
+    
+    return window.backupDictionary.english.filter(word => 
+        word.length >= 3 && 
+        word.length <= 8 && 
+        canFormWord(word, letters)
+    );
+}
+
+function searchBackupMalay(letters) {
+    if (!window.backupDictionary || !window.backupDictionary.malay) {
+        return [];
+    }
+    
+    return window.backupDictionary.malay.filter(word => 
+        word.length >= 3 && 
+        word.length <= 8 && 
+        canFormWord(word, letters)
+    );
+}
+
+function searchBackupDictionary(letters) {
+    const results = [];
+    
+    if (window.backupDictionary?.english) {
+        results.push(...searchBackupEnglish(letters));
+    }
+    
+    if (window.backupDictionary?.malay) {
+        results.push(...searchBackupMalay(letters));
+    }
+    
+    return [...new Set(results)];
+}
+
+function canFormWord(word, letters) {
+    const lettersCopy = [...letters];
+    
+    for (const char of word.toLowerCase()) {
+        const index = lettersCopy.indexOf(char);
+        if (index === -1) return false;
+        lettersCopy.splice(index, 1);
+    }
+    
+    return true;
+}
+
+// ====================
+// UI UPDATES
+// ====================
+
+function updateUI() {
+    updateResultsCount();
+    updateWordList();
+    updateSearchStats();
+    updateAPIStatus('online');
+}
+
+function updateResultsCount() {
+    const countElement = document.getElementById('resultsCount');
+    const sourceElement = document.getElementById('apiSource');
+    
+    if (countElement) {
+        countElement.textContent = appState.foundWords.length;
+    }
+    
+    if (sourceElement) {
+        const source = appState.lastSearchTime > 0 ? 
+            `(API: ${appState.lastSearchTime.toFixed(2)}s)` : 
+            '(Offline)';
+        sourceElement.textContent = source;
+    }
+}
+
 function updateWordList() {
     const wordsList = document.getElementById('wordsList');
-    const resultsCount = document.getElementById('resultsCount');
+    if (!wordsList) return;
     
-    if (foundWords.length === 0) {
-        wordsList.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #666;">
-                <div style="font-size: 3rem; margin-bottom: 20px;">🔍</div>
-                <h3>Tiada kata ditemui</h3>
-                <p>Cuba masukkan huruf yang berbeza</p>
-            </div>
-        `;
-        resultsCount.textContent = '0';
+    if (appState.foundWords.length === 0) {
+        const lettersCount = appState.currentLetters.filter(l => l).length;
+        
+        if (lettersCount < 3) {
+            wordsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-keyboard"></i>
+                    </div>
+                    <h3>Enter at least 3 letters</h3>
+                    <p>Type letters or click "Random Letters" to start</p>
+                </div>
+            `;
+        } else {
+            wordsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No words found</h3>
+                    <p>Try different letters or check API status</p>
+                    <div class="empty-tips">
+                        <div class="tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Include more vowels (A, E, I, O, U)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
         return;
     }
     
-    // Update count
-    resultsCount.textContent = foundWords.length.toString();
-    
-    // Build word list HTML
+    // Build word cards
     let wordsHTML = '';
-    foundWords.forEach(word => {
+    appState.foundWords.forEach((word, index) => {
         const score = calculateWordScore(word);
+        const lengthClass = `word-length-${word.length}`;
+        
         wordsHTML += `
-            <div class="word-card">
-                <span class="word-text word-length-${word.length}">${word}</span>
-                <div>
-                    <span style="background: #e3f2fd; color: #1a73e8; padding: 4px 12px; border-radius: 20px; font-weight: bold; margin-right: 10px;">
-                        ${score}
-                    </span>
-                    <span style="background: #f1f3f4; color: #5f6368; padding: 4px 12px; border-radius: 20px;">
-                        ${word.length} huruf
-                    </span>
+            <div class="word-card" style="animation-delay: ${index * 0.05}s">
+                <div class="word-content">
+                    <span class="word-text ${lengthClass}">${word}</span>
+                    <div class="word-details">
+                        <span class="word-score">${score}</span>
+                        <span class="word-length">${word.length}</span>
+                    </div>
                 </div>
+                <button class="word-copy" onclick="copyWord('${word}')" title="Copy word">
+                    <i class="fas fa-copy"></i>
+                </button>
             </div>
         `;
     });
@@ -240,131 +508,211 @@ function updateWordList() {
     wordsList.innerHTML = wordsHTML;
 }
 
-// Calculate Scrabble-like score for a word
+function updateSearchStats() {
+    const searchTimeElement = document.getElementById('searchTime');
+    const avgScoreElement = document.getElementById('avgScore');
+    
+    if (searchTimeElement) {
+        searchTimeElement.textContent = `${appState.lastSearchTime.toFixed(2)}s`;
+    }
+    
+    if (avgScoreElement && appState.foundWords.length > 0) {
+        const avgScore = appState.foundWords.reduce((sum, word) => 
+            sum + calculateWordScore(word), 0) / appState.foundWords.length;
+        avgScoreElement.textContent = avgScore.toFixed(1);
+    }
+}
+
+function filterWords(searchTerm) {
+    if (!searchTerm) {
+        updateWordList();
+        return;
+    }
+    
+    const filtered = appState.foundWords.filter(word => 
+        word.includes(searchTerm.toLowerCase())
+    );
+    
+    const temp = appState.foundWords;
+    appState.foundWords = filtered;
+    updateWordList();
+    appState.foundWords = temp;
+}
+
+function sortWords(sortType) {
+    switch(sortType) {
+        case 'length-desc':
+            appState.foundWords.sort((a, b) => b.length - a.length);
+            break;
+        case 'score-desc':
+            appState.foundWords.sort((a, b) => 
+                calculateWordScore(b) - calculateWordScore(a)
+            );
+            break;
+        case 'alpha':
+            appState.foundWords.sort();
+            break;
+        case 'common':
+            // Sort by word frequency (simple heuristic)
+            appState.foundWords.sort((a, b) => {
+                const commonWords = ['the', 'and', 'you', 'that', 'was', 'for', 'are'];
+                const aIndex = commonWords.indexOf(a);
+                const bIndex = commonWords.indexOf(b);
+                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                if (aIndex !== -1) return -1;
+                if (bIndex !== -1) return 1;
+                return a.length - b.length;
+            });
+            break;
+    }
+    
+    updateWordList();
+}
+
+// ====================
+// UTILITY FUNCTIONS
+// ====================
+
 function calculateWordScore(word) {
-    const letterScores = {
-        'a': 1, 'b': 3, 'c': 3, 'd': 2, 'e': 1, 'f': 4, 'g': 2, 'h': 4,
-        'i': 1, 'j': 8, 'k': 5, 'l': 1, 'm': 3, 'n': 1, 'o': 1, 'p': 3,
-        'q': 10, 'r': 1, 's': 1, 't': 1, 'u': 1, 'v': 4, 'w': 4, 'x': 8,
-        'y': 4, 'z': 10
+    const scores = {
+        'a':1,'b':3,'c':3,'d':2,'e':1,'f':4,'g':2,'h':4,'i':1,'j':8,'k':5,'l':1,
+        'm':3,'n':1,'o':1,'p':3,'q':10,'r':1,'s':1,'t':1,'u':1,'v':4,'w':4,'x':8,
+        'y':4,'z':10
     };
     
     return word.toLowerCase().split('').reduce((total, letter) => {
-        return total + (letterScores[letter] || 0);
+        return total + (scores[letter] || 0);
     }, 0);
 }
 
-// Setup event listeners for buttons
-function setupEventListeners() {
-    // Language buttons
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Update active button
-            document.querySelectorAll('.lang-btn').forEach(b => {
-                b.classList.remove('active');
-            });
-            this.classList.add('active');
-            
-            // Update language
-            currentLanguage = this.dataset.lang;
-            
-            // Update dictionary info
-            const dictInfo = document.getElementById('dictionaryInfo');
-            if (currentLanguage === 'malay') {
-                dictInfo.textContent = ' | Kamus Bahasa Melayu';
-            } else if (currentLanguage === 'english') {
-                dictInfo.textContent = ' | English Dictionary';
-            } else {
-                dictInfo.textContent = ' | Both Dictionaries';
+function showLoading(show, message = '') {
+    const overlay = document.getElementById('loadingOverlay');
+    const text = document.getElementById('loadingText');
+    const subtext = document.getElementById('loadingSubtext');
+    const progress = document.getElementById('progressBar');
+    
+    if (!overlay) return;
+    
+    if (show) {
+        if (text) text.textContent = message || 'Searching for words...';
+        if (subtext) subtext.textContent = 'Checking multiple APIs';
+        if (progress) progress.style.width = '0%';
+        
+        overlay.classList.add('active');
+        
+        // Animate progress bar
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 90) {
+                clearInterval(interval);
+                return;
             }
-            
-            // Re-search with new language
-            findPossibleWords();
-        });
-    });
-    
-    // Generate random letters button
-    document.getElementById('generateBtn').addEventListener('click', generateRandomLetters);
-    
-    // Clear all button
-    document.getElementById('clearBtn').addEventListener('click', function() {
-        currentLetters = Array(8).fill('');
-        document.querySelectorAll('.letter-tile').forEach(input => {
-            input.value = '';
-        });
-        foundWords = [];
-        updateWordList();
-        document.querySelector('.letter-tile[data-index="0"]').focus();
-    });
-    
-    // Search input
-    document.getElementById('searchInput').addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        if (!searchTerm) {
-            updateWordList();
-            return;
+            width += 10;
+            if (progress) progress.style.width = width + '%';
+        }, 300);
+        
+        overlay._progressInterval = interval;
+    } else {
+        if (progress) progress.style.width = '100%';
+        
+        if (overlay._progressInterval) {
+            clearInterval(overlay._progressInterval);
         }
         
-        const filtered = foundWords.filter(word => 
-            word.includes(searchTerm) || 
-            searchTerm.split('').every(char => word.includes(char))
-        );
-        
-        const tempWords = foundWords;
-        foundWords = filtered;
-        updateWordList();
-        foundWords = tempWords;
-    });
-}
-
-// Show/hide loading animation
-function showLoading(show) {
-    const loading = document.getElementById('loadingScreen');
-    if (show) {
-        loading.classList.add('show');
-    } else {
-        loading.classList.remove('show');
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            if (progress) progress.style.width = '0%';
+        }, 300);
     }
 }
 
-// Show notification
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #27ae60;
-        color: white;
-        padding: 15px 25px;
-        border-radius: 10px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        z-index: 1000;
-        animation: slideIn 0.3s ease-out;
-    `;
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    const text = document.getElementById('notificationText');
+    const icon = document.querySelector('.notification-icon');
     
-    notification.textContent = message;
-    document.body.appendChild(notification);
+    if (!notification || !text) return;
     
+    // Set message and icon
+    text.textContent = message;
+    
+    if (icon) {
+        icon.className = 'notification-icon fas ' + (
+            type === 'success' ? 'fa-check-circle' :
+            type === 'error' ? 'fa-exclamation-circle' :
+            type === 'warning' ? 'fa-exclamation-triangle' :
+            'fa-info-circle'
+        );
+    }
+    
+    // Show notification
+    notification.classList.add('show');
+    
+    // Auto-hide after 3 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
+        notification.classList.remove('show');
     }, 3000);
 }
 
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
+function updateAPIStatus(status) {
+    const statusElement = document.getElementById('apiStatus');
+    if (!statusElement) return;
     
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
+    if (status === 'online') {
+        statusElement.innerHTML = '<i class="fas fa-wifi"></i> API Online';
+        statusElement.className = 'status-online';
+    } else {
+        statusElement.innerHTML = '<i class="fas fa-wifi-slash"></i> API Offline';
+        statusElement.className = 'status-offline';
     }
-`;
-document.head.appendChild(style);
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function copyWord(word) {
+    navigator.clipboard.writeText(word).then(() => {
+        showNotification(`Copied: ${word}`);
+    });
+}
+
+function copyAllWords() {
+    if (appState.foundWords.length === 0) return;
+    
+    const text = appState.foundWords.join(', ');
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification(`Copied ${appState.foundWords.length} words to clipboard`);
+    });
+}
+
+// ====================
+// LOAD BACKUP DICTIONARY
+// ====================
+
+function loadBackupDictionary() {
+    // This will be loaded from words-cache.js
+    if (!window.backupDictionary) {
+        window.backupDictionary = {
+            english: [],
+            malay: []
+        };
+        console.warn('Backup dictionary not loaded');
+    }
+}
+
+// ====================
+// GLOBAL FUNCTIONS
+// ====================
+
+// Make functions available globally
+window.copyWord = copyWord;
+window.performSearch = performSearch;
