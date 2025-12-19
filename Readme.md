@@ -1,45 +1,58 @@
-# 🔤 Word Master - Live Word Game Solver
+# 🔤 Word Master 2.0
 
-A powerful web application that helps you solve word games like Scrabble, Words With Friends, and Literati using live API searches.
+A comprehensive word game solver and practice platform with daily challenges, achievements, and learning features.
 
 ## 🌐 Live Demo
-[Add your GitHub Pages URL here after deployment]
+[https://rzftry.github.io/word/](https://rzftry.github.io/word/)
 
 ## ✨ Features
-- **Live API Search**: Connects to multiple free APIs for real-time word finding
-- **Dual Language Support**: English and Bahasa Melayu
-- **Smart Algorithm**: Finds all possible words from given letters
-- **Scoring System**: Calculates word scores like in Scrabble
-- **Offline Support**: Works without internet using cached dictionary
-- **Progressive Web App**: Can be installed on devices
-- **Responsive Design**: Works on mobile, tablet, and desktop
 
-## 🚀 How to Use
-1. Enter 8 letters in the boxes
-2. Select language (English/Malay/Both)
-3. Words appear automatically in real-time
-4. Copy words to use in your game
+### 🎯 **Core Solver**
+- Live word search from given letters
+- Support for English and Bahasa Melayu
+- Scrabble-like scoring system
+- Pattern search with wildcards
+- Export results (JSON, CSV, Text)
 
-## 🛠️ Technologies Used
-- HTML5, CSS3, JavaScript (Vanilla)
-- Progressive Web App (PWA)
-- Service Workers for offline support
-- Multiple Free APIs (Datamuse, Kateglo, etc.)
+### 🎮 **Practice Mode**
+- **Daily Challenges** - New puzzle every day
+- **Timed Mode** - Race against the clock
+- **Target Mode** - Reach specific score targets
+- **Unlimited Practice** - No pressure practice
+- **Survival Mode** - Keep finding words to stay alive
 
-## 📦 Installation
-### Option 1: GitHub Pages (Recommended)
-1. Fork this repository
-2. Go to Settings → Pages
-3. Select `main` branch and `/ (root)` folder
-4. Save and wait for deployment
+### 📚 **Learning Features**
+- **Word of the Day** with definitions and examples
+- **Word Patterns** lessons (prefixes, suffixes, roots)
+- **High-Score Letters** mastery guide
+- **Speed Training** exercises
+- **Malay Words** for Literati players
 
-### Option 2: Local Hosting
+### 📊 **Statistics & Analytics**
+- Personal performance tracking
+- Progress charts and graphs
+- Achievement system
+- Leaderboards
+- Detailed game history
+
+### 🏆 **Achievements**
+- 20+ unlockable achievements
+- Progress tracking
+- Badge collection
+- Daily streaks
+
+## 🚀 Quick Start
+
+### Option 1: Use Live Demo
+Visit [https://rzftry.github.io/word/](https://rzftry.github.io/word/)
+
+### Option 2: Local Development
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/word-master.git
+git clone https://github.com/rzftry/word.git
 
-# Navigate to folder
-cd word-master
+# Navigate to project folder
+cd word
 
 # Open in browser
 # Simply open index.html in your browser

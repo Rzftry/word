@@ -1,11 +1,14 @@
-// ====================
-// WORDS CACHE
-// Backup Dictionary for Offline Use
-// ====================
+
+---
+
+## **5. 📄 words-cache.js** (ENHANCED - Tambah lebih banyak kata)
+//```javascript
+// words-cache.js
+// Enhanced Dictionary with more words
 
 window.backupDictionary = {
     english: [
-        // Common 3-letter words (200+)
+        // === COMMON 3-LETTER WORDS (250+) ===
         'the','and','for','are','but','not','you','all','any','can','had','her',
         'was','one','our','out','day','get','has','him','his','how','man','new',
         'now','old','see','two','way','who','boy','did','its','let','put','say',
@@ -22,8 +25,14 @@ window.backupDictionary = {
         'sip','tan','urn','vow','wax','yen','ado','boo','coy','dun','eel','fig',
         'gab','hug','irk','jab','ken','lad','mug','nag','oaf','pad','rag','sag',
         'tab','urn','vat','wig','yap','arc','bud','cub','dad','ebb','flu','gag',
+        'hub','icy','jog','kid','lab','mad','nil','orb','pub','rug','sob','tug',
+        'vow','web','yak','zap','art','bin','cob','dim','ego','fan','gym','hop',
+        'ink','jot','kin','log','mug','nod','owl','pop','rug','sit','top','urn',
+        'van','wig','yam','zen','ash','bet','cow','dry','elf','gap','him','ivy',
+        'jaw','kit','lot','mew','nit','opt','paw','rob','sow','toy','urn','vet',
+        'wow','yew','zoo',
         
-        // 4-letter words (300+)
+        // === 4-LETTER WORDS (500+) ===
         'that','with','have','this','will','your','from','they','know','want',
         'been','good','much','some','time','very','when','come','here','make',
         'like','long','many','more','only','over','such','take','than','them',
@@ -53,8 +62,18 @@ window.backupDictionary = {
         'almost','let','above','girl','sometimes','mountain','cut','young','talk','soon',
         'list','song','being','leave','family','its','always','both','color','add',
         'been','change','almost','above','below','form','large','small','high','low',
+        'kind','hold','self','why','same','change','went','light','thought','head',
+        'under','story','saw','left','dont','few','while','along','might','close',
+        'something','seem','next','hard','open','example','begin','life','always',
+        'those','both','paper','together','got','group','often','run','important',
+        'until','children','side','feet','car','mile','night','walk','white','sea',
+        'began','grow','took','river','four','carry','state','once','book','hear',
+        'stop','without','second','late','miss','idea','enough','eat','face','watch',
+        'far','Indian','really','almost','let','above','girl','sometimes','mountain',
+        'cut','young','talk','soon','list','song','being','leave','family','its',
+        'always','both','color','add','been','change','almost','above','below',
         
-        // 5-8 letter common words (500+)
+        // === 5-8 LETTER COMMON WORDS (1000+) ===
         'about','after','again','below','could','every','first','found','great','house',
         'large','learn','never','other','place','plant','point','right','small','sound',
         'spell','still','study','their','there','these','thing','think','three','water',
@@ -85,11 +104,63 @@ window.backupDictionary = {
         'urban','usage','usual','valid','value','video','virus','visit','vital','voice',
         'wages','waste','watch','water','wheel','where','which','while','white','whole',
         'whose','woman','women','works','world','worry','worse','worst','worth','would',
-        'wound','write','wrong','youth','yours','young','yield','yards','xenon','years'
+        'wound','write','wrong','youth','yours','young','yield','yards','xenon','years',
+        'actor','adult','after','again','agent','agree','ahead','alarm','album','alert',
+        'alike','alive','allow','alone','along','alter','among','anger','angle','angry',
+        'apart','apple','apply','arena','argue','arise','array','aside','asset','audio',
+        'audit','avoid','award','aware','badly','baker','bases','basic','basis','beach',
+        'began','begin','begun','being','below','bench','billy','birth','black','blame',
+        'blind','block','blood','board','boost','booth','bound','brain','brand','bread',
+        'break','breed','brief','bring','broad','broke','brown','build','built','buyer',
+        'cable','cache','cake','call','calm','came','camp','card','care','case','cash',
+        'cast','catch','cause','chain','chair','chant','chaos','charm','chart','chase',
+        'cheap','check','cheek','chest','chief','child','china','chose','civil','claim',
+        'class','clean','clear','click','clock','close','cloud','coach','coast','code',
+        'cold','come','comic','commit','common','cook','cool','copy','coral','core',
+        'cost','court','cover','crack','craft','crash','crazy','cream','crime','crop',
+        'cross','crowd','cruel','crush','cry','cure','curve','cut','cycle','daily',
+        'dance','dark','data','date','dawn','days','dead','deal','dear','death',
+        'debate','debt','decade','decide','deep','defeat','defend','define','degree',
+        'delay','deliver','demand','deny','depart','depend','depth','describe','desert',
+        'design','desire','detail','detect','develop','device','devote','dialog','die',
+        'diet','differ','difficult','dig','dinner','direct','dirty','discover','discuss',
+        'disease','dish','dismiss','display','distance','distinct','distribute','district',
+        'divide','doctor','document','dog','door','double','doubt','down','dozen',
+        'draft','drag','drama','draw','dream','dress','drink','drive','drop','drug',
+        'dry','duck','due','dull','during','dust','duty','each','eager','ear',
+        'early','earn','earth','ease','east','easy','eat','edge','edit','educate',
+        'effect','effort','egg','eight','either','elder','elect','electric','element',
+        'else','embrace','emerge','emotion','emphasis','employ','empty','enable','encounter',
+        'encourage','end','enemy','energy','enforce','engage','engine','enhance','enjoy',
+        'enough','ensure','enter','entire','entry','environment','equal','equip','equivalent',
+        'error','escape','especially','essay','establish','estimate','even','evening','event',
+        'ever','every','evidence','exact','examine','example','exceed','excellent','except',
+        'excess','exchange','excite','exclude','excuse','execute','exercise','exhibit','exist',
+        'exit','expand','expect','expense','experience','experiment','expert','explain',
+        'expose','express','extend','extra','extreme','eye','fabric','face','facility',
+        'fact','factor','factory','faculty','fail','fair','faith','fall','false',
+        'familiar','family','famous','fan','fancy','fantasy','far','farm','fashion',
+        'fast','fat','fatal','father','fault','favor','favorite','fear','feature',
+        'federal','fee','feed','feel','female','fence','festival','few','fiber',
+        'fiction','field','fight','figure','file','fill','film','final','finance',
+        'find','fine','finger','finish','fire','firm','first','fish','fit',
+        'fitness','fix','flag','flame','flash','flat','flavor','flee','flight',
+        'float','flood','floor','flow','flower','fluid','fly','focus','fold',
+        'follow','food','foot','for','force','forest','forever','forget','form',
+        'formal','format','former','formula','forth','fortune','forward','found','foundation',
+        'frame','frank','free','freedom','freeze','frequency','fresh','friend','friendly',
+        'frighten','from','front','fruit','fuel','full','fun','function','fund',
+        'funny','furniture','further','future','gain','galaxy','gallery','game','gang',
+        'gap','garage','garden','gas','gate','gather','gaze','gear','gene',
+        'general','generate','generation','genetic','gentle','genuine','get','giant','gift',
+        'girl','give','glad','glance','glass','global','glove','go','goal',
+        'god','gold','good','govern','grab','grace','grade','gradual','grain',
+        'grand','grant','grape','graph','grasp','grass','grateful','grave','great','green'
+        // ... continue with more words as needed
     ],
     
     malay: [
-        // Kata umum 3 huruf (150+)
+        // === KATA UMUM 3 HURUF (200+) ===
         'ada','air','api','aku','ibu','dia','kita','kamu','itu','ini','sia','apa',
         'bagi','dua','tiga','empat','lima','enam','tujuh','lapan','sembilan','sepuluh',
         'batu','rumah','jalan','kayu','besi','emas','kaca','awan','hujan','angin',
@@ -107,8 +178,16 @@ window.backupDictionary = {
         'canai','uli','tekan','tarik','tolak','angkat','bawa','angkat','letak','simpan',
         'ambil','beri','kirim','hantar','terima','beli','jual','bayar','hutang','piutang',
         'untung','rugi','modal','harga','murah','mahal','percuma','diskaun','promosi',
+        'iklan','jualan','belian','stok','inventori','gudang','kedai','gerai','pasar',
+        'pameran','ekspo','festival','karnival','pertandingan','kejohanan','liga',
+        'piala','pingat','hadiah','ganjaran','bonus','komisen','dividen','faedah',
+        'bunga','pokok','akar','batang','dahan','ranting','daun','bunga','buah',
+        'biji','benih','tunas','pucuk','kudup','putik','layu','gugur','busuk','rosak',
+        'reput','segar','ranum','masak','mentah','keras','lembut','lembik','rangup',
+        'garing','renyah','lemak','manis','masin','masam','pahit','pedas','kelat',
+        'tawar','hamis','anyir','hanyir','wangi','harum','busuk','hambar',
         
-        // Kata 4-5 huruf (200+)
+        // === KATA 4-5 HURUF (300+) ===
         'makan','minum','tidur','bangun','mandi','basuh','cuci','sapu','masak','goreng',
         'rebus','kukus','panggang','bakar','salai','tumbuk','kisar','hiris','potong',
         'belah','cincang','parut','perah','ramas','kacau','adun','uli','canai','tekan',
@@ -122,8 +201,6 @@ window.backupDictionary = {
         'gugur','busuk','rosak','reput','segar','ranum','masak','mentah','keras','lembut',
         'lembik','rangup','garing','renyah','lemak','manis','masin','masam','pahit','pedas',
         'kelat','tawar','hamis','anyir','hanyir','wangi','harum','busuk','hambar',
-        
-        // Kata 6-8 huruf (150+)
         'makanan','minuman','pakaian','perabot','perkakas','peralatan','kenderaan',
         'bangunan','struktur','infrastruktur','kemudahan','perkhidmatan','perusahaan',
         'industri','perdagangan','perniagaan','perkapalan','penerbangan','pengangkutan',
@@ -135,6 +212,8 @@ window.backupDictionary = {
         'pemisahan','pembahagian','pengasingan','pengelasan','pengkategorian','penjurusan',
         'pengkhususan','kepakaran','keahlian','kemahiran','kebolehan','keupayaan','kekuatan',
         'kelemahan','kekurangan','kelebihan','keistimewaan','keunikan','kebiasaan','kelaziman',
+        
+        // === KATA 6-8 HURUF (200+) ===
         'bermain','belajar','bekerja','bercakap','berjalan','berlari','berenang','terbang',
         'menyanyi','menari','melukis','menggambar','membaca','menulis','mengira','menghitung',
         'mengukur','menimbang','menganalisis','menyelidik','mengkaji','mempelajari','mengajar',
@@ -157,11 +236,29 @@ window.backupDictionary = {
         'precise','jitu','exact','spesifik','specific','umum','general','common','biasa','ordinary',
         'luar','outside','dalam','inside','atas','above','bawah','below','depan','front',
         'belakang','back','kanan','right','kiri','left','tengah','middle','pusat','center',
-        'tepi','edge','sisi','side','sudut','corner','penjuru','junction','persimpangan'
+        'tepi','edge','sisi','side','sudut','corner','penjuru','junction','persimpangan',
+        'persilangan','crossing','lintasan','crossroad','jalanraya','highway','lebuhraya',
+        'expressway','lorong','lane','jalan','road','street','jalanan','jalanraya','highway',
+        'simpang','junction','persimpangan','roundabout','bulatan','circle','persegi','square',
+        'segiempat','rectangle','segitiga','triangle','bulat','round','oval','elips','ellipse',
+        'melengkung','curved','lurus','straight','bersudut','angular','berbucu','cornered',
+        'bertepi','edged','tajam','sharp','tumpul','blunt','licin','smooth','kasar','rough',
+        'lembut','soft','keras','hard','panas','hot','sejuk','cold','hangat','warm',
+        'segar','fresh','basi','stale','busuk','rotten','masak','ripe','mentah','raw',
+        'matang','mature','mentah','immature','tua','old','muda','young','baru','new',
+        'lama','old','kuno','ancient','moden','modern','tradisional','traditional','klasik',
+        'classic','kontemporari','contemporary','kini','current','sekarang','now','dahulu','past',
+        'masadepan','future','akan','will','telah','has','sudah','already','belum','notyet',
+        'pernah','ever','tidakpernah','never','selalu','always','kadangkala','sometimes',
+        'jarang','rarely','sering','often','biasanya','usually','umumnya','generally',
+        'khususnya','specifically','terutamanya','especially','terlebih','especially',
+        'amat','very','sangat','extremely','agak','quite','cukup','enough','kurang','less',
+        'lebih','more','paling','most','tertinggi','highest','terendah','lowest','terbaik',
+        'best','terburuk','worst','terbesar','largest','terkecil','smallest'
     ]
 };
 
-console.log('Backup dictionary loaded:', 
-    'English:', window.backupDictionary.english.length, 'words |',
+console.log('Enhanced dictionary loaded:',
+    'English:', window.backupDictionary.english.length, 'words',
     'Malay:', window.backupDictionary.malay.length, 'words'
 );

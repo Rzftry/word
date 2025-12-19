@@ -1,21 +1,89 @@
 {
-  "name": "Word Master",
+  "name": "Word Master 2.0",
   "short_name": "WordMaster",
-  "description": "Live word game solver with API search for Scrabble, Words, and Literati",
-  "start_url": ".",
+  "description": "Word game solver with practice mode, daily challenges, and learning features",
+  "start_url": "/word/",
+  "scope": "/word/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
   "background_color": "#0f172a",
   "theme_color": "#4361ee",
   "orientation": "portrait-primary",
+  "categories": ["games", "education", "productivity"],
+  "lang": "ms",
+  "dir": "ltr",
+  
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%234361ee%22>🔤</text></svg>",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "https://via.placeholder.com/192x192/4361ee/ffffff?text=WM",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/4361ee/ffffff?text=WM",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["games", "education", "productivity"],
-  "lang": "ms",
-  "dir": "ltr",
-  "prefer_related_applications": false
+  
+  "shortcuts": [
+    {
+      "name": "Daily Challenge",
+      "short_name": "Daily",
+      "description": "Play today's daily challenge",
+      "url": "/word/?tab=practice",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23f72585%22>🎯</text></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "Word Solver",
+      "short_name": "Solver",
+      "description": "Solve word games instantly",
+      "url": "/word/?tab=solver",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%234361ee%22>🔍</text></svg>", "sizes": "96x96" }]
+    }
+  ],
+  
+  "screenshots": [
+    {
+      "src": "https://via.placeholder.com/1280x720/0f172a/ffffff?text=Word+Master+Screenshot",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Word Master Solver Interface"
+    },
+    {
+      "src": "https://via.placeholder.com/750x1334/0f172a/ffffff?text=Word+Master+Mobile",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Word Master Mobile App"
+    }
+  ],
+  
+  "related_applications": [],
+  "prefer_related_applications": false,
+  
+  "protocol_handlers": [
+    {
+      "protocol": "web+wordmaster",
+      "url": "/word/?word=%s"
+    }
+  ],
+  
+  "share_target": {
+    "action": "/word/share/",
+    "method": "GET",
+    "params": {
+      "title": "Word Master",
+      "text": "Check out this word I found in Word Master!"
+    }
+  }
 }

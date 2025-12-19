@@ -716,3 +716,146 @@ function loadBackupDictionary() {
 // Make functions available globally
 window.copyWord = copyWord;
 window.performSearch = performSearch;
+// app.js - Enhanced with new features
+// Keep your existing app.js code but add these new functions:
+
+class EnhancedSolver {
+    constructor() {
+        // Your existing initialization
+        this.initializeEnhancedFeatures();
+    }
+    
+    initializeEnhancedFeatures() {
+        // Word Definitions
+        this.setupWordDefinitions();
+        
+        // Pattern Search
+        this.setupPatternSearch();
+        
+        // Save/Load Sets
+        this.setupSaveLoad();
+        
+        // Export Features
+        this.setupExport();
+    }
+    
+    setupWordDefinitions() {
+        // Add click handler to word cards
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.word-card')) {
+                const wordElement = e.target.closest('.word-card').querySelector('.word-text');
+                if (wordElement) {
+                    this.showWordDefinition(wordElement.textContent);
+                }
+            }
+        });
+    }
+    
+    async showWordDefinition(word) {
+        try {
+            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            const data = await response.json();
+            
+            if (data[0]?.meanings[0]?.definitions[0]) {
+                const definition = data[0].meanings[0].definitions[0].definition;
+                this.showDefinitionModal(word, definition);
+            }
+        } catch (error) {
+            console.log('Could not fetch definition');
+        }
+    }
+    
+    setupPatternSearch() {
+        // Add pattern search input
+        const searchBox = document.getElementById('searchInput');
+        if (searchBox) {
+            searchBox.placeholder = "Search words or use pattern (e.g., C?T = CAT, COT, CUT)";
+            
+            searchBox.addEventListener('input', (e) => {
+                const pattern = e.target.value;
+                if (pattern.includes('?')) {
+                    this.performPatternSearch(pattern);
+                }
+            });
+        }
+    }
+    
+    performPatternSearch(pattern) {
+        // Convert pattern like "C?T" to regex
+        const regexPattern = pattern.replace(/\?/g, '.').toLowerCase();
+        const regex = new RegExp(`^${regexPattern}$`);
+        
+        // Filter current words
+        const filtered = this.currentWords.filter(word => regex.test(word));
+        this.displayFilteredWords(filtered);
+    }
+    
+    setupSaveLoad() {
+        // Add save/load buttons to UI
+        const saveBtn = document.getElementById('saveSetBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveLetterSet());
+        }
+        
+        // Load saved sets dropdown
+        this.loadSavedSets();
+    }
+    
+    saveLetterSet() {
+        const letters = this.currentLetters.filter(l => l);
+        const name = prompt('Enter a name for this letter set:', 'My Letter Set');
+        
+        if (name && letters.length > 0) {
+            const sets = JSON.parse(localStorage.getItem('savedLetterSets') || '[]');
+            sets.push({
+                name: name,
+                letters: letters,
+                date: new Date().toISOString()
+            });
+            
+            localStorage.setItem('savedLetterSets', JSON.stringify(sets));
+            this.loadSavedSets();
+        }
+    }
+    
+    loadSavedSets() {
+        const sets = JSON.parse(localStorage.getItem('savedLetterSets') || '[]');
+        // Create dropdown UI
+    }
+    
+    setupExport() {
+        // Add export button
+        const exportBtn = document.getElementById('exportBtn');
+        if (!exportBtn) {
+            const btn = document.createElement('button');
+            btn.id = 'exportBtn';
+            btn.innerHTML = '<i class="fas fa-download"></i> Export';
+            btn.className = 'btn solver-btn';
+            btn.addEventListener('click', () => this.exportResults());
+            
+            document.querySelector('.solver-controls').appendChild(btn);
+        }
+    }
+    
+    exportResults() {
+        const results = {
+            letters: this.currentLetters.filter(l => l),
+            words: this.currentWords,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Export as JSON
+        const dataStr = JSON.stringify(results, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `word-solver-${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
+}
+
+// Integrate with existing app
+// Add this to your existing initialization
